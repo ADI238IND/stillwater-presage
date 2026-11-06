@@ -41,11 +41,11 @@ npm run preview
 ```
 `preview` serves the interface only. Live sensing requires `npm start` in Electron.
 
-Nine Node tests cover consent-independent signal readiness, invalid/low-confidence samples, stale data, camera warnings, bounded personal adaptation, and reset deletion. These are controller tests, not evidence of camera accuracy.
+Thirteen Node tests cover consent-independent signal readiness, invalid/low-confidence samples, stale data, camera warnings, bounded personal adaptation, and reset deletion. These are controller tests, not evidence of camera accuracy.
 
 ### Verified in the development environment
 - Production Vite build passes.
-- Nine controller and session tests pass.
+- Thirteen controller, session and camera-readiness tests pass.
 - Rendered browser preview verified: synthetic signals, reading start/pause, Stop, and custom-text dialog.
 - Native SmartSpectra 3.4.0 loads successfully.
 - Camera discovery returned **zero cameras** in the remote development environment.
@@ -81,3 +81,5 @@ Original Stillwater app code is MIT licensed. The Presage SDK and its native run
 Close Stillwater, run `git pull`, and restart with `npm start`. In the camera consent dialog, check consent and select **Test camera only**. This opens a local preview without starting Presage or using credits. Press Stop before starting a live Presage session. If the local preview fails, the dialog now identifies permission denial, a busy device, or a missing webcam. If local preview works but Presage fails, the app preserves the SDK error category instead of overwriting it on cleanup. Initial frame-drop warnings alone do not establish camera failure.
 
 For Windows, check Settings → Privacy & security → Camera → Camera access and Let desktop apps access your camera. Close other camera apps before retrying. Never share your API key.
+
+Camera preview now explicitly starts playback and waits up to ten seconds for decoded, advancing video before reporting frame receipt. Opening a stream alone is not proof of usable images. If frames arrive but the image remains black, check the physical shutter and use Refresh camera list in the consent dialog to select the actual webcam. Both camera test and live sessions use the selected device. No pixel content is analyzed by this readiness check.

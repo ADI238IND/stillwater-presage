@@ -1,6 +1,8 @@
 // Never include a developer key or vendor payload in user-facing diagnostics.
 export function startupMessage(error = {}) {
   const name = error.cause?.name || error.name;
+  if(name === 'CameraFramesTimeout') return 'Camera opened but no advancing video arrived within 10 seconds. Check the webcam privacy shutter, close other camera apps, or use Refresh camera list to select another device.';
+  if(name === 'NotSupportedError') return 'Camera video playback is unavailable. Restart Stillwater and try another physical webcam.';
   if (name === 'NotAllowedError') return 'Camera permission denied. Enable Camera access and Let desktop apps access your camera in Windows Settings → Privacy & security → Camera.';
   if (name === 'NotReadableError') return 'Windows cannot open the camera. Close Camera, Teams, Zoom and other camera apps, then retry.';
   if (name === 'NotFoundError') return 'No camera was found. Connect a webcam and check it in the Windows Camera app.';
