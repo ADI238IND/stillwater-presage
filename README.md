@@ -41,11 +41,11 @@ npm run preview
 ```
 `preview` serves the interface only. Live sensing requires `npm start` in Electron.
 
-Six Node tests cover consent-independent signal readiness, invalid/low-confidence samples, stale data, camera warnings, bounded personal adaptation, and reset deletion. These are controller tests, not evidence of camera accuracy.
+Nine Node tests cover consent-independent signal readiness, invalid/low-confidence samples, stale data, camera warnings, bounded personal adaptation, and reset deletion. These are controller tests, not evidence of camera accuracy.
 
 ### Verified in the development environment
 - Production Vite build passes.
-- Six signal-controller tests pass.
+- Nine controller and session tests pass.
 - Rendered browser preview verified: synthetic signals, reading start/pause, Stop, and custom-text dialog.
 - Native SmartSpectra 3.4.0 loads successfully.
 - Camera discovery returned **zero cameras** in the remote development environment.
@@ -75,3 +75,9 @@ See [demo recording guide](docs/DEMO_GUIDE.md), [submission draft](docs/DEV_SUBM
 
 ## License
 Original Stillwater app code is MIT licensed. The Presage SDK and its native runtimes remain subject to their own licenses and terms; they are fetched as dependencies, not relicensed here.
+
+## Camera troubleshooting
+
+Close Stillwater, run `git pull`, and restart with `npm start`. In the camera consent dialog, check consent and select **Test camera only**. This opens a local preview without starting Presage or using credits. Press Stop before starting a live Presage session. If the local preview fails, the dialog now identifies permission denial, a busy device, or a missing webcam. If local preview works but Presage fails, the app preserves the SDK error category instead of overwriting it on cleanup. Initial frame-drop warnings alone do not establish camera failure.
+
+For Windows, check Settings → Privacy & security → Camera → Camera access and Let desktop apps access your camera. Close other camera apps before retrying. Never share your API key.
