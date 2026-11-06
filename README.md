@@ -46,6 +46,7 @@ Six Node tests cover consent-independent signal readiness, invalid/low-confidenc
 ### Verified in the development environment
 - Production Vite build passes.
 - Six signal-controller tests pass.
+- Rendered browser preview verified: synthetic signals, reading start/pause, Stop, and custom-text dialog.
 - Native SmartSpectra 3.4.0 loads successfully.
 - Camera discovery returned **zero cameras** in the remote development environment.
 - **Live camera integration and demo video are pending local verification. This repository is not yet a completed challenge submission.**
