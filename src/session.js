@@ -23,3 +23,19 @@ export async function releaseSession(instance) {
   if (!instance) return;
   try { await instance.stop(); } finally { await instance.destroy(); }
 }
+
+export function sdkFailure(error = {}, secrets = []) {
+  let detail = typeof error.message === 'string' ? error.message : '';
+  for (const secret of secrets) {
+    if (typeof secret === 'string' && secret.length) detail=detail.split(secret).join('[redacted]');
+  }
+  detail=detail
+    .replace(/\b(?:Bearer\s+)[^\s,;]+/gi,'Bearer [redacted]')
+    .replace(/((?:api[_ -]?key|token|authorization|password)\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi,'$1[redacted]')
+    .replace(/https?:\/\/[^\s]+/gi,'[service URL]')
+    .replace(/[A-Z]:\\Users\\[^\r\n,;]*/gi,'[local path]')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,'[email]')
+    .replace(/[\r\n\t]+/g,' ').slice(0,1000);
+  const code=typeof error.code==='number'?` [SDK ${error.code}]`:'';
+  return startupMessage(error)+code+(detail?` Details: ${detail}`:'');
+}

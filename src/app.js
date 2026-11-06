@@ -1,6 +1,6 @@
 import './style.css';
 import {ReadingEngine} from './engine.js';
-import {startupMessage,releaseSession} from './session.js';
+import {startupMessage,releaseSession,sdkFailure} from './session.js';
 import {cameraConstraints,waitForVideo} from './camera.js';
 const $=s=>document.querySelector(s);
 const engine=new ReadingEngine();let sdk=null,mode='idle',timer=null,playing=false,line=0,lastPageAt=0,startedAt=0,busy=false,sessionError='',sessionGeneration=0,cleanupPromise=null;
@@ -57,9 +57,9 @@ $('#begin').onclick=async()=>{if(busy)return;if(!$('#agree').checked||!$('#key')
  sdk.on('processingStatus',status=>{if(generation!==sessionGeneration)return;$('#hint').textContent=['Not initialized','Idle','Starting Presage — initial loading may take up to 30 seconds.','Presage running. Waiting for a clear face and visible upper torso.','Stopping Presage','Presage processing error'][status]||'Waiting for Presage';});
  sdk.on('validationStatus',(code,ts,hint)=>{if(generation!==sessionGeneration)return;engine.setValidation(code);$('#hint').textContent=code===0?'Signal ready. Read comfortably and breathe naturally.':hint||'Adjust your position and lighting.';});
  sdk.on('metrics',buf=>{if(mode!=='live'||generation!==sessionGeneration)return;const m=decodeMetrics(buf);if(m && !(m instanceof Uint8Array))engine.ingest(m,performance.now());});
- sdk.on('error',(code)=>{if(generation!==sessionGeneration)return;sessionError=startupMessage({code});$('#consentError').textContent=sessionError;void stop();});
+ sdk.on('error',(code,message)=>{if(generation!==sessionGeneration)return;sessionError=sdkFailure({code,message},[key]);$('#consentError').textContent=sessionError;void stop();});
  setMode('live');startedAt=performance.now();await sdk.start();if(generation!==sessionGeneration)return;$('#consent').close();$('#agree').checked=false;
- }catch(error){if(generation===sessionGeneration){sessionError=startupMessage(error);await stop();$('#consentError').textContent=sessionError;}}finally{if(!cleanupPromise)busy=false;$('#begin').disabled=false;}};
+ }catch(error){if(generation===sessionGeneration){sessionError=sdkFailure(error,[key]);await stop();$('#consentError').textContent=sessionError;}}finally{if(!cleanupPromise)busy=false;$('#begin').disabled=false;}};
 $('#demo').onclick=()=>{sessionError='';engine.reset();engine.setValidation(0);setMode('demo');startedAt=performance.now();$('#hint').textContent='Illustrative data. No camera is active. Try the reading controls.';timer=setInterval(()=>{const t=(performance.now()-startedAt)/1000;engine.ingest({breathing:{rate:[{value:14+2*Math.sin(t/14),confidence:1}],upperTrace:[{value:Math.sin(t*1.4),confidence:1}]}},performance.now());},250);};
 const canvas=$('#scene'),ctx=canvas.getContext('2d'),traceCanvas=$('#signal'),traceCtx=traceCanvas.getContext('2d');let visual=0,lastFrame=0;
 function draw(now){requestAnimationFrame(draw);if(now-lastFrame<33)return;lastFrame=now;const s=engine.snapshot(now),reduced=document.body.classList.contains('reduce')||matchMedia('(prefers-reduced-motion: reduce)').matches;
