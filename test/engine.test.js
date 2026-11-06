@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {ReadingEngine,lastValid} from '../src/engine.js';
+const packet=n=>({breathing:{rate:[{value:n,confidence:.9}],upperTrace:[{value:.4}]}});
+test('never adapts before a valid camera status',()=>{const e=new ReadingEngine();assert.equal(e.ingest(packet(12),100),false);assert.equal(e.snapshot(100).fresh,false);});
+test('missing, nonfinite, low confidence and out of range readings are rejected',()=>{for(const v of [NaN,Infinity,-1,70])assert.equal(lastValid([{value:v}],4,45),null);assert.equal(lastValid([{value:12,confidence:.2}],4,45),null);assert.equal(lastValid([],4,45),null);});
+test('stale readings cannot drive the experience',()=>{const e=new ReadingEngine();e.setValidation(0);e.ingest(packet(12),0);assert.equal(e.snapshot(4999).fresh,true);assert.equal(e.snapshot(5001).fresh,false);assert.equal(e.snapshot(5001).rate,null);assert.equal(e.snapshot(5001).pace,1);});
+test('camera warnings immediately suspend adaptation',()=>{const e=new ReadingEngine();e.setValidation(0);e.ingest(packet(14),20);e.setValidation(5);assert.equal(e.snapshot(30).fresh,false);assert.equal(e.ingest(packet(12),40),false);});
+test('pace changes relative to baseline, stays bounded, buffers stay bounded',()=>{const e=new ReadingEngine();e.setValidation(0);for(let i=0;i<30;i++)e.ingest(packet(16),i);for(let i=30;i<300;i++)e.ingest(packet(10),i);assert.ok(e.snapshot(300).pace>1);assert.ok(e.snapshot(300).pace<=1.1);assert.equal(e.baseline.length,30);assert.equal(e.trace.length,180);});
+test('stop/reset removes measurements and baseline',()=>{const e=new ReadingEngine();e.setValidation(0);e.ingest(packet(16),0);e.reset();assert.equal(e.baseline.length,0);assert.equal(e.trace.length,0);assert.equal(e.snapshot(1).rate,null);});
